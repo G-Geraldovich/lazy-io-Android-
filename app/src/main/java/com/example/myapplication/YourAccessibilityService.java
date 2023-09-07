@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Path;
 import android.graphics.Point;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -32,6 +33,7 @@ public class YourAccessibilityService extends AccessibilityService  {
     public static final String mBroadcastArrayListAction = "com.example.myapplication.arraylist";
     private IntentFilter mIntentFilter;
     private IntentFilter mIntentFilterUnLock;
+    private AudioManager audioManager;
 
     PowerManager.WakeLock partialWakeLock;
 
@@ -55,11 +57,45 @@ public class YourAccessibilityService extends AccessibilityService  {
 
             if (intent.getAction().equals(mBroadcastIntegerAction)) { // Жесты
                 Log.d("--a---a---a--a--a--a--", "onRecieve:");
-                pressLocation(new Point(400,500),intent.getIntExtra("Data",0));
 
+                if (intent.getIntExtra("Data",0)<=4) {
+                    pressLocation(new Point(400, 500), intent.getIntExtra("Data", 0));
+                }else {
+                    volumeControl(intent.getIntExtra("Data", 0));
+                }
             }
         }
     };
+
+    private void volumeControl(int command) {
+        switch (command){
+        case 5://VOL_UP
+
+        audioManager.adjustVolume(AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI);
+        Log.d("--a---a---a--a--a--a--", "VOL_UP");
+        break;
+
+        case 6://VOL_DOWN
+
+        audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+        Log.d("--a---a---a--a--a--a--", "VOL_DOWN");
+        break;
+
+        case 7://Accept a call
+            audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+        Log.d("--a---a---a--a--a--a--", "Accept a call");
+        break;
+
+        case 8://Reject call
+            audioManager.adjustVolume(AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI);
+        Log.d("--a---a---a--a--a--a--", "Reject");
+        break;
+
+        default:
+
+        break;
+    }
+    }
 
 
     @Override
@@ -108,7 +144,7 @@ public class YourAccessibilityService extends AccessibilityService  {
         mIntentFilterUnLock.addAction(Intent.ACTION_SCREEN_ON);
         mIntentFilterUnLock.addAction(Intent.ACTION_SCREEN_OFF);
         registerReceiver(displayStateReciewer,mIntentFilterUnLock);
-
+        audioManager = (AudioManager) YourAccessibilityService.this.getSystemService(Context.AUDIO_SERVICE);
         Toast.makeText(this, "ON ON ON ON ON", Toast.LENGTH_SHORT).show();
 
 
@@ -123,31 +159,35 @@ public class YourAccessibilityService extends AccessibilityService  {
 
         switch (route){
             case 0://UP
+                Log.d("--a---a---a--a--a--a--", "UP");
                 p.moveTo(position.x, position.y);
                 p.lineTo(position.x, position.y+500);
                 builder.addStroke(new GestureDescription.StrokeDescription(p, 10L, 200L));
                 break;
 
             case 1://DOWN
+                Log.d("--a---a---a--a--a--a--", "DOWN");
                 p.moveTo(position.x, position.y);
                 p.lineTo(position.x, position.y-500);
                 builder.addStroke(new GestureDescription.StrokeDescription(p, 10L, 200L));
                 break;
 
             case 2://RIGHT
+                Log.d("--a---a---a--a--a--a--", "RIGHT");
                 p.moveTo(position.x, position.y);
                 p.lineTo(position.x+399, position.y);
                 builder.addStroke(new GestureDescription.StrokeDescription(p, 10L, 200L));
                 break;
 
             case 3://LEFT
+                Log.d("--a---a---a--a--a--a--", "LEFT");
                 p.moveTo(position.x, position.y);
                 p.lineTo(position.x-399, position.y);
                 builder.addStroke(new GestureDescription.StrokeDescription(p, 10L, 200L));
                 break;
 
             case 4://TAP
-
+                Log.d("--a---a---a--a--a--a--", "UNLOCK_DISPLAY");
                 PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
                 PowerManager.WakeLock  wakeLock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK |
                         PowerManager.ACQUIRE_CAUSES_WAKEUP |
